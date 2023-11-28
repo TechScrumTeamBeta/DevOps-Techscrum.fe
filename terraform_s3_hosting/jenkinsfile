@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    
+    environment {
+        TF_CLI_ARGS = "-no-color"
+    }
+
+    
+    stages {
+        stage('Preparing') {
+            steps {
+                sh 'echo Prepaing'
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                git branch: 'Melissa', url: 'https://github.com/TechScrumTeamBeta/DevOps-Techscrum.fe.git'
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                script {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    input 'Proceed with Terraform Apply?'
+
+                    sh 'terraform apply tfplan  --auto-approve'
+                }
+            }
+        }
+
+        stage('Deploy Website') {
+            steps {
+                script {
+                    // Add any additional steps to deploy your static website (e.g., copy files to S3, invalidate CDN cache, etc.)
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Terraform deployment successful!'
+        }
+        failure {
+            echo 'Terraform deployment failed!'
+        }
+        cleanup {
+            script {
+                // Clean up any temporary files or resources if needed
+            }
+        }
+    }
+}
